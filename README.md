@@ -44,3 +44,4 @@ Application of the cluster search and inference pipeline on 3000 Rice Genomes da
 
 
 ![image](figures/impute_2rings2.png)
+

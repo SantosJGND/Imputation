@@ -23,7 +23,7 @@ def get_config(dataw,nsamp):
 
 
 
-def process_array(dataT):
+def process_array(dataT, return_config= False):
     '''
     Prepare haplotype array for coalescence inference algorithms.
     see: https://nbviewer.jupyter.org/github/SantosJGND/Coalescent/blob/master/Models_coalescence.ipynb
@@ -59,7 +59,11 @@ def process_array(dataT):
 
     point_up= recursively_default_dict()
     
-    return Dict_mat, point_up
+    if return_config:
+        return Dict_mat, point_up, config_dataw
+
+    else:
+        return Dict_mat, point_up
 
 
 
