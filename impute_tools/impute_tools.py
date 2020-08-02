@@ -74,16 +74,18 @@ def get_bg_grid(Quanted_set, P= 20, dimN= 2):
 
 
 
-def kde_likes_extract(dist_grid,dist_ref,
-                     Bandwidth_split = 30,dist_comps= 10):
+def kde_likes_extract(dist_grid,dist_ref,pca_obj= 0, 
+                     Bandwidth_split = 30,dist_comps= 4):
     """
     i) Dr fit using the first data set, ii) transformation of both, iii) likelihood extraction for first using KDE.
     """
-    pca2 = PCA(n_components=dist_comps, whiten=False,svd_solver='randomized')
 
-    pca_dists= pca2.fit(dist_grid)
-    featw= pca_dists.transform(dist_grid)
-    featref= pca2.transform(dist_ref)
+    if not pca_obj:
+        pca2 = PCA(n_components=dist_comps, whiten=False,svd_solver='randomized')
+        pca_obj= pca2.fit(dist_ref)
+    #pca_dists= pca2.fit(dist_grid)
+    featw= pca_obj.transform(dist_grid)
+    featref= pca_obj.transform(dist_ref)
 
     params = {'bandwidth': np.linspace(np.min(featref), np.max(featref),Bandwidth_split)}
     grid = GridSearchCV(KernelDensity(algorithm = "ball_tree",breadth_first = False), params,verbose=0,cv= 3,iid= False)
@@ -127,7 +129,8 @@ def gridWalk(featl,dist_ref, BG_func, BG_args= {}, std_gp_use= 0,
             dist_comps= 10,
             Bandwidth_split = 30,
             metric= 'euclidean',
-            kernel= 'gaussian'):
+            kernel= 'gaussian',
+            min_samp= 5):
     '''
     grid narrowing using MeanShift.
     '''
@@ -154,7 +157,7 @@ def gridWalk(featl,dist_ref, BG_func, BG_args= {}, std_gp_use= 0,
 
         ####
 
-        grid_likes= kde_likes_extract(dist_grid,dist_ref)
+        grid_likes= kde_likes_extract(dist_grid,dist_ref,dist_comps= dist_comps)
 
         ####
 
@@ -167,7 +170,7 @@ def gridWalk(featl,dist_ref, BG_func, BG_args= {}, std_gp_use= 0,
         if lm + lsd * 2 > diff_max:
             which= [x for x in range(len(grid_likes)) if grid_likes[x] >= lm]
             
-            if not which:
+            if len(which) < min_samp:
                 granted.extend(background)
                 max_like+= [lmax]
                 d += 1
@@ -191,6 +194,6 @@ def gridWalk(featl,dist_ref, BG_func, BG_args= {}, std_gp_use= 0,
                                                 metric=metric)
 
     ####
-    grid_likes= kde_likes_extract(dist_grid,dist_ref)
+    grid_likes= kde_likes_extract(dist_grid,dist_ref,dist_comps= dist_comps)
     
     return granted, grid_likes
