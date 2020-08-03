@@ -38,7 +38,7 @@ Based on the method described in section **I.**. Additions include: composite li
 
 **data requirement**: haplotype, phased, or nearly homozygous data.
 
-> [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/master/rice_impute_I.ipynb)
+> [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/master/rice_impute.ipynb)
 
 
 **ii. cluster distance and imputation**
