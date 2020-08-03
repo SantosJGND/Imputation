@@ -36,6 +36,8 @@ Dimensionality reduction and maximum likelihood cluster classification. Use for 
 
 Based on the method described in section **I.**. Additions include: composite likelihood; control for distance; exclusion of observations carrying missing or heterozygous in local distance calculations.
 
+**data requirement**: haplotype, phased, or nearly homozygous data.
+
 > [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/master/rice_impute_I.ipynb)
 
 
