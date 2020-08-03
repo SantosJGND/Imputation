@@ -34,7 +34,7 @@ Dimensionality reduction and maximum likelihood cluster classification. Use for 
 
 **i. Haplotype imputation** 
 
-Based on the method described in section **I.**. Additions include: composite likelihood; control for distance; exclusion of observations carrying missing or heterozygous in local distance calculations.
+Based on the method described in section **I.**. Additions include: composite likelihood; control for distance; exclusion of observations carrying missing or heterozygous calls in local distance calculations.
 
 **data requirement**: haplotype, phased, or nearly homozygous data.
 
