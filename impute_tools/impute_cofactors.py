@@ -28,13 +28,17 @@ def code_find(nwind,code_v= [1,9],binned= True,axis= 1):
 
 
 
-def bin_keep(lwind, keep= 2):
+def bin_keep(lwind, keep= [2]):
     """
     turn data into binary array of presence of chosen code.
     """
     
-    lwind= lwind == keep
-    lwind= np.array(lwind,dtype= int)
+    nl= np.zeros(lwind.shape)
+    for char in keep:
+        lt=  lwind == keep
+        nl+= lt
+
+    lwind= np.array(nl,dtype= int)
     
     return lwind
 
