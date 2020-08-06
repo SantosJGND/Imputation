@@ -221,7 +221,7 @@ def grid_likelihood(dist_grid,dist_store,dist_tools,labelf_select= {},std_gp_use
     #likes_array= likes_array / np.nansum(likes_array,axis= 1).reshape(-1,1)
     #
     
-    like_diet= np.nanprod(likes_array,axis= 0) 
+    like_diet= np.nansum(likes_array,axis= 0) 
     #
     return like_diet
 
