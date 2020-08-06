@@ -108,21 +108,27 @@ def store_differences(genotype, Seq_store, select_same, dr_obj,
                         nan_char= [1,9],
                         metric= 'euclidean',
                         process_tools= {},
-                        keep_tools= {}):
+                        keep_tools= {},
+                        std= True,
+                        avoid_range= 0):
     """
     Use vector of array positions to extract windows;
     Calculate distances between between target observation and select_same distances at each window.
     exclude observations at each windows
     """
     nan_acc= tf[0]
+    nan_pos= tf[1]
     
     dist_store= []
+
+    mask_pos= list(range(nan_pos-avoid_range,nan_pos+avoid_range+1))
+
     for stp in Seq_store:
         
         if stp < wind_sizes/2:
             continue
         
-        nwind= lwind_extract(genotype,idx= stp, wind_sizes= wind_sizes,mask_pos= [tf[1]])
+        nwind= lwind_extract(genotype,idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
         
         ## local keep 
         keep= keep_tools[0](nwind, **keep_tools[1])
@@ -144,6 +150,9 @@ def store_differences(genotype, Seq_store, select_same, dr_obj,
         obsn= featw[nan_acc,:dimN].reshape(1,-1)
         dist_vec= pairwise_distances(obsn, featw[select_same,:dimN],
                                                     metric=metric)
+
+        if std:
+            dist_vec= (dist_vec - np.mean(dist_vec)) / np.std(dist_vec)
 
         dist_store.extend(dist_vec)
     
@@ -211,7 +220,8 @@ def grid_likelihood(dist_grid,dist_store,dist_tools,labelf_select= {},std_gp_use
     likes_array= likes_array * dist_prop.reshape(-1,1)
     #likes_array= likes_array / np.nansum(likes_array,axis= 1).reshape(-1,1)
     #
-    like_diet= np.nansum(likes_array,axis= 0) 
+    
+    like_diet= np.nanprod(likes_array,axis= 0) 
     #
     return like_diet
 
@@ -233,7 +243,8 @@ from impute_tools.genome_adapt import (
 def get_likes_engine(genotype, wst, tf, 
                      process_tools, keep_tools, varFilt_tools, dist_tools,
                      wind_sizes= 50, Nreps= 100, ncomps= 3, nan_char= [1,9], ind_min= 50,
-                     dimN= 3, metric= 'euclidean', comps_dists= 5):
+                     dimN= 3, metric= 'euclidean', comps_dists= 5,
+                     std_diffs= True,avoid_range= 0):
     '''
     '''
     tf_acc= tf[0]
@@ -246,7 +257,8 @@ def get_likes_engine(genotype, wst, tf,
                        wind_sizes= wind_sizes,
                         Nrep= Nreps,
                         ncomps= ncomps,
-                         ind_min= ind_min)
+                         ind_min= ind_min,
+                         avoid_range= avoid_range)
 
 
     ### get distances array from extracted windows windows
@@ -255,7 +267,9 @@ def get_likes_engine(genotype, wst, tf,
                             nan_char= nan_char,
                             metric= metric,
                             process_tools= process_tools,
-                            keep_tools= keep_tools)
+                            keep_tools= keep_tools,
+                            std= std_diffs,
+                            avoid_range= avoid_range)
 
 
     ### Variance in distances across reference windows
@@ -296,7 +310,8 @@ from impute_tools.impute_cofactors import (
 
 def window_exam(featl, samp_keep, select_same, std_gp_use, dist_store, dist_tools, 
                 labelf_select= {},correct_dist= {},
-               P= 25, dimN= 3, metric= "euclidean",expand= 1):
+               P= 25, dimN= 3, metric= "euclidean",expand= 1,
+                std_diffs= True):
     '''
     Local window, parse for select_same inds from target_wdDist
     retain only the observations without avoid_data at this window.
@@ -317,6 +332,10 @@ def window_exam(featl, samp_keep, select_same, std_gp_use, dist_store, dist_tool
                                                 metric=metric)
 
     ###
+    if std_diffs:
+
+        dist_grid= (dist_grid - np.mean(dist_grid)) / np.std(dist_grid)
+
     like_diet= grid_likelihood(dist_grid,dist_store,dist_tools,
                                labelf_select= labelf_select,
                                std_gp_use= std_gp_use,

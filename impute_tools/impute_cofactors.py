@@ -5,6 +5,10 @@ from sklearn.neighbors import KernelDensity
 from sklearn.decomposition import PCA
 from sklearn.cluster import estimate_bandwidth
 
+from sklearn.model_selection import GridSearchCV
+
+from sklearn.cluster import MeanShift, estimate_bandwidth
+
 
 def code_find(nwind,code_v= [1,9],binned= True,axis= 1):
     '''
@@ -28,19 +32,25 @@ def code_find(nwind,code_v= [1,9],binned= True,axis= 1):
 
 
 
-def bin_keep(lwind, keep= [2]):
+def bin_keep(lwind, code_keep= [2], binned= True):
     """
     turn data into binary array of presence of chosen code.
     """
     
     nl= np.zeros(lwind.shape)
-    for char in keep:
-        lt=  lwind == keep
-        nl+= lt
-
-    lwind= np.array(nl,dtype= int)
+    for cd in code_keep:
+        tl= lwind == cd
+        tl= np.array(tl,dtype= int) * cd
+        nl+= tl
     
-    return lwind
+    nl= np.array(nl,dtype= int)
+    
+    if binned:
+        nl= nl != 0
+        nl= np.array(nl,dtype= int)
+    
+    return nl
+
 
 
 def sg_varSel(dist_var,proc= 'cluster',stt= 2, min_ind= 10):

@@ -48,7 +48,7 @@ def window_parse(summary, centre= 0, wind_sizes= 20, wind_prox= 1e6):
     '''
     obs_pos= int(summary.POS[centre])
     wst= [x for x in range(summary.shape[0]) if abs(int(summary.POS[x]) - obs_pos) <= wind_prox and x != centre]
-    #wst= [x for x in wst if x < (centre-int(wind_sizes/2)) or x > (centre+int(wind_sizes/2))]
+    wst= [x for x in wst if x < (centre-int(wind_sizes/2)) or x > (centre+int(wind_sizes/2))]
     
     return wst
 
@@ -104,7 +104,8 @@ def target_wdDist(genotype, keep_tools, avail_coords= [],
                 Nrep= 400,
                 ncomps= 5,
                  ind_min= 50,
-                 int_check= 50):
+                 int_check= 50,
+                 avoid_range= 0):
     '''
     Given avail_coords list of possible features, 
     Parse every possible window for observations bearing codes to avoid using the function `code_check`.
@@ -131,13 +132,16 @@ def target_wdDist(genotype, keep_tools, avail_coords= [],
     
     d= 0
     trail= []
+
     
+    mask_pos= list(range(nan_pos-avoid_range,nan_pos+avoid_range+1))
+
     while len(Seq_store) < Nrep:
         
         stp_idx= np.random.randint(0,len(avail_coords),1)[0]
         stp= avail_coords[stp_idx]
 
-        nwind= lwind_extract(genotype, idx= stp, wind_sizes= wind_sizes,mask_pos= [nan_pos])
+        nwind= lwind_extract(genotype, idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
         
         code_check= keep_tools[0](nwind,**keep_tools[1])
         code_check= np.array(code_check,dtype= int)

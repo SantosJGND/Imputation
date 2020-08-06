@@ -32,22 +32,13 @@ Dimensionality reduction and maximum likelihood cluster classification. Use for 
 
 ### Application to rice data.
 
-**i. Haplotype imputation** 
-
-Based on the method described in section **I.**. Additions include: composite likelihood; control for distance; exclusion of observations carrying missing or heterozygous calls in local distance calculations.
-
-**data requirement**: haplotype, phased, or nearly homozygous data.
-
-> [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/236f9db546da8ec16e4afa2e0b5dc15f090fa342/rice_impute.ipynb)
-
-
-**ii. cluster distance and imputation**
+**i. cluster distance and imputation**
 
 Application of the cluster search and inference pipeline on 3000 Rice Genomes data. Focus on Japonica and cBasmati variation. Distance inference now performed within 1MB of focal target. 
 
 > [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/master/rice_ClusterSearch.ipynb)
 
-**iii. targeted Ne estimation at local windows**
+**ii. targeted Ne estimation at local windows**
 
 > [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/master/Theta_ClusterSearch.ipynb)
 
