@@ -127,6 +127,7 @@ def target_wdDist(genotype, keep_tools, avail_coords= [],
     ###
     nan_array= []
     Seq_store= {}
+    select_same= []
     dist_store= []
     already_visited= [0] * len(avail_coords)
     
@@ -136,10 +137,16 @@ def target_wdDist(genotype, keep_tools, avail_coords= [],
     
     mask_pos= list(range(nan_pos-avoid_range,nan_pos+avoid_range+1))
 
-    while len(Seq_store) < Nrep:
+    sorted_coords= [x - nan_pos for x in avail_coords]
+    sorted_coords= {avail_coords[z]:sorted_coords[z] for z in range(len(avail_coords))}
+    sorted_coords= sorted(sorted_coords,key= sorted_coords.get,reverse= True)
+    print('hi')
+    stp_idx= 0
+
+    for stp in sorted_coords:
         
-        stp_idx= np.random.randint(0,len(avail_coords),1)[0]
-        stp= avail_coords[stp_idx]
+        #stp_idx= np.random.randint(0,len(avail_coords),1)[0]
+        #stp= avail_coords[stp_idx]
 
         nwind= lwind_extract(genotype, idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
         
@@ -153,61 +160,52 @@ def target_wdDist(genotype, keep_tools, avail_coords= [],
         nan_array.append(code_check)
         trail.append(stp)
         
-        if d >= Nrep:
-            pres_dat= np.array(nan_array)
-            feats= pca.fit_transform(pres_dat)
-            print(pres_dat.shape)
-            bandwidth = estimate_bandwidth(feats, quantile=0.2)
-            
-            if bandwidth == 0:
-                labels1= [0]*feats.shape[0]
-            else:
-                ms = MeanShift(bandwidth=bandwidth, bin_seeding=False, cluster_all=True, min_bin_freq=25)
-                ms.fit(feats)
-                labels1 = ms.labels_
-            
-            label_select = {y:[x for x in range(len(labels1)) if labels1[x] == y] for y in sorted(list(set(labels1)))}
-            label_sizes= {z:len(g) for z,g in label_select.items()}
-            lab_max= sorted(label_sizes,key= label_sizes.get,reverse= True)[0]
-            ##
-            ##
-            if label_sizes[lab_max] >= Nrep:
-                
-                lab_chose= label_select[lab_max]
-                pres_dat= pres_dat[lab_chose]
-                
-                pres_chose= np.sum(pres_dat,axis= 1)
-                #
-                pres_range= range(min(pres_chose),max(pres_chose)+1)
-                pres_cdf= [sum(pres_chose >= x) for x in pres_range]                
-                
-                for idx in range(len(pres_cdf))[::-1]:
-                    if pres_range[idx] > ind_min:
-                        if pres_cdf[idx] >= Nrep:
-                            pres_select= pres_chose >= pres_range[idx]
-                            #
-                            select_same= pres_dat[pres_select]
-                            select_same= np.sum(select_same,axis= 0)
-                            #
-                            select_same= select_same == max(select_same)
-                            select_same= np.array(other_obs)[select_same]
-                            #
-                            pres_select= np.array(lab_chose)[pres_select]
-                            keep_select= np.random.choice(pres_select,Nrep,replace= False)
-                            
-                            Seq_store= [trail[x] for x in  keep_select]
-            
-            d-= int_check
         
-        
-        d+= 1
-        
-        already_visited[stp_idx]= 1
-        if sum(already_visited) == len(avail_coords):
-            print(d)
-            #print(d,already_visited)
-            return [], Seq_store
+    pres_dat= np.array(nan_array)
+    feats= pca.fit_transform(pres_dat)
+    print(pres_dat.shape)
+    bandwidth = estimate_bandwidth(feats, quantile=0.2)
     
+    if bandwidth == 0:
+        labels1= [0]*feats.shape[0]
+    else:
+        ms = MeanShift(bandwidth=bandwidth, bin_seeding=False, cluster_all=True, min_bin_freq=25)
+        ms.fit(feats)
+        labels1 = ms.labels_
+    
+    label_select = {y:[x for x in range(len(labels1)) if labels1[x] == y] for y in sorted(list(set(labels1)))}
+    label_sizes= {z:len(g) for z,g in label_select.items()}
+    lab_max= sorted(label_sizes,key= label_sizes.get,reverse= True)[0]
+    ##
+    ##
+    if label_sizes[lab_max] >= Nrep:
+        
+        lab_chose= label_select[lab_max]
+        pres_dat= pres_dat[lab_chose]
+        
+        pres_chose= np.sum(pres_dat,axis= 1)
+        #
+        pres_range= range(min(pres_chose),max(pres_chose)+1)
+        pres_cdf= [sum(pres_chose >= x) for x in pres_range]                
+        
+        for idx in range(len(pres_cdf))[::-1]:
+            if pres_range[idx] > ind_min:
+                if pres_cdf[idx] >= Nrep:
+                    pres_select= pres_chose >= pres_range[idx]
+                    #
+                    select_same= pres_dat[pres_select]
+                    select_same= np.sum(select_same,axis= 0)
+                    #
+                    select_same= select_same == max(select_same)
+                    select_same= np.array(other_obs)[select_same]
+                    #
+                    pres_select= np.array(lab_chose)[pres_select]
+                    keep_select= np.random.choice(pres_select,Nrep,replace= False)
+                    
+                    Seq_store= [trail[x] for x in  pres_select]
+    
+
+
     return select_same, Seq_store
     
 

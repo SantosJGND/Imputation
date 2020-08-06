@@ -87,7 +87,7 @@ def kde_likes_extract(dist_grid,dist_ref,pca_obj= 0,
     featw= pca_obj.transform(dist_grid)
     featref= pca_obj.transform(dist_ref)
 
-    params = {'bandwidth': np.linspace(np.min(featref), np.max(featref),Bandwidth_split)}
+    params = {'bandwidth': np.linspace(np.min(featw), np.max(featw),Bandwidth_split)}
     grid = GridSearchCV(KernelDensity(algorithm = "ball_tree",breadth_first = False), params,verbose=0,cv= 3,iid= False)
 
     grid.fit(featref)
@@ -152,7 +152,8 @@ def store_differences(genotype, Seq_store, select_same, dr_obj,
                                                     metric=metric)
 
         if std:
-            dist_vec= (dist_vec - np.mean(dist_vec)) / np.std(dist_vec)
+            dist_vec= (dist_vec.T - np.mean(dist_vec,axis= 1)) / np.std(dist_vec,axis= 1)
+            dist_vec= dist_vec.T
 
         dist_store.extend(dist_vec)
     
@@ -184,8 +185,9 @@ def grid_likelihood(dist_grid,dist_store,dist_tools,labelf_select= {},std_gp_use
     if not correct_dist:
         correct_dist= {z: 1 for z in labelf_select}
     ###
-    print(ncomps)
+    
     pca_dists = PCA(n_components=ncomps, whiten=False,svd_solver='randomized')
+
     pca_dists= pca_dists.fit(dist_store[:,std_gp_use])
     
     likes_array= []
@@ -236,7 +238,7 @@ def grid_likelihood(dist_grid,dist_store,dist_tools,labelf_select= {},std_gp_use
 #######################################################
 #######################################################
 
-from impute_tools.genome_adapt import (
+from impute_tools.genome_adapt_I import (
     target_wdDist, lwind_extract
 )
 
@@ -281,16 +283,17 @@ def get_likes_engine(genotype, wst, tf,
     ### Clustering windows
     ###
     pca_cl = PCA(n_components=comps_dists, whiten=False,svd_solver='randomized')
-    featd= pca_cl.fit_transform(dist_store)
+    featd= pca_cl.fit_transform(dist_store[:,std_gp_use])
     bandwidth = estimate_bandwidth(featd, quantile=0.2)
 
-    if bandwidth < .01:
+    if bandwidth == 0:
         labelf_select= {0: list(range(featd.shape[0]))}
     else:
         ms = MeanShift(bandwidth=bandwidth, bin_seeding=False, cluster_all=False, min_bin_freq=15)
         ms.fit(featd)
         labelsf = ms.labels_
-        labelf_select = {y:[x for x in range(len(labelsf)) if labelsf[x] == y] for y in sorted(list(set(labelsf)))}
+        labelf_select = {y:[x for x in range(len(labelsf)) if labelsf[x] == y] for y in sorted(list(set(labelsf))) if y != -1}
+
 
 
     ### 
@@ -307,6 +310,8 @@ def get_likes_engine(genotype, wst, tf,
 from impute_tools.impute_cofactors import (
     index_convert2L, expand_grid
 )
+
+
 
 def window_exam(featl, samp_keep, select_same, std_gp_use, dist_store, dist_tools, 
                 labelf_select= {},correct_dist= {},
@@ -334,7 +339,8 @@ def window_exam(featl, samp_keep, select_same, std_gp_use, dist_store, dist_tool
     ###
     if std_diffs:
 
-        dist_grid= (dist_grid - np.mean(dist_grid)) / np.std(dist_grid)
+        dist_grid= (dist_grid.T - np.mean(dist_grid,axis= 1)) / np.std(dist_grid,axis= 1)
+        dist_grid= dist_grid.T
 
     like_diet= grid_likelihood(dist_grid,dist_store,dist_tools,
                                labelf_select= labelf_select,
