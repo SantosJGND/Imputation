@@ -3,6 +3,7 @@ from sklearn.neighbors import KernelDensity
 from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import pairwise_distances
+from scipy.stats import norm
 
 import numpy as np
 import itertools as it
@@ -75,7 +76,7 @@ def get_bg_grid(Quanted_set, P= 20, dimN= 2):
 
 
 def kde_likes_extract(dist_grid,dist_ref,pca_obj= 0, 
-                     Bandwidth_split = 30,dist_comps= 4):
+                     Bandwidth_split = 30,dist_comps= 4, lnorm= False):
     """
     i) Dr fit using the first data set, ii) transformation of both, iii) likelihood extraction for first using KDE.
     """
@@ -87,20 +88,25 @@ def kde_likes_extract(dist_grid,dist_ref,pca_obj= 0,
     featw= pca_obj.transform(dist_grid)
     featref= pca_obj.transform(dist_ref)
 
-    params = {'bandwidth': np.linspace(np.min(featw), np.max(featw),Bandwidth_split)}
+    params = {'bandwidth': np.linspace(np.min(dist_ref), np.max(dist_ref),Bandwidth_split)}
     grid = GridSearchCV(KernelDensity(algorithm = "ball_tree",breadth_first = False), params,verbose=0,cv= 3,iid= False)
 
     grid.fit(featref)
     kde = grid.best_estimator_
 
     grid_likes= kde.score_samples(featw)
-    grid_likes= np.exp(grid_likes)
+
+    if lnorm: 
+        lrefs= kde.score_samples(featref)
+        grid_likes= norm.cdf(grid_likes,loc= np.mean(lrefs),scale= np.std(lrefs))
+
+    else:
+        grid_likes= np.exp(grid_likes)
     
     return grid_likes
 
 ###
 ###
-
 
 
 def store_differences(genotype, Seq_store, select_same, dr_obj, 
@@ -128,7 +134,7 @@ def store_differences(genotype, Seq_store, select_same, dr_obj,
         if stp < wind_sizes/2:
             continue
         
-        nwind= lwind_extract(genotype,idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
+        nwind= lwind_extractv2(genotype,idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
         
         ## local keep 
         keep= keep_tools[0](nwind, **keep_tools[1])
@@ -238,8 +244,8 @@ def grid_likelihood(dist_grid,dist_store,dist_tools,labelf_select= {},std_gp_use
 #######################################################
 #######################################################
 
-from impute_tools.genome_adapt_I import (
-    target_wdDist, lwind_extract
+from impute_tools.genome_adapt import (
+    target_wdDist, lwind_extractv2
 )
 
 def get_likes_engine(genotype, wst, tf, 

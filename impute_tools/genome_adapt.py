@@ -48,7 +48,7 @@ def window_parse(summary, centre= 0, wind_sizes= 20, wind_prox= 1e6):
     '''
     obs_pos= int(summary.POS[centre])
     wst= [x for x in range(summary.shape[0]) if abs(int(summary.POS[x]) - obs_pos) <= wind_prox and x != centre]
-    wst= [x for x in wst if x < (centre-int(wind_sizes/2)) or x > (centre+int(wind_sizes/2))]
+    #wst= [x for x in wst if x < (centre-int(wind_sizes/2)) or x > (centre+int(wind_sizes/2))]
     
     return wst
 
@@ -60,14 +60,42 @@ def lwind_extract(genotype, idx= 50, wind_sizes= 50, mask_pos= []):
     lb= idx - width
     lb= [0,lb][int(lb > 0)]
     ub= idx + width
-    ub= [ub,genotype.shape[1]][int(ub > genotype.shape[1])]
+    ub= [ub,genotype.shape[1]-1][int(ub >= genotype.shape[1])]
     retain= []
     d= int(lb)
-    while len(retain) < wind_sizes and d <= genotype.shape[1]:
+
+    while len(retain) < wind_sizes and d < ub:
         if d not in mask_pos:
             retain.append(d)
         d+= 1
     
+    retain= sorted(retain)
+    lwind= genotype[:,retain]
+    
+    return lwind
+
+
+def lwind_extractv2(genotype, idx= 50, wind_sizes= 50, mask_pos= []):
+    '''
+    '''
+
+    retain= [idx]
+    ub= idx + 1
+    lb= idx - 1
+    
+    while len(retain) < wind_sizes:
+
+        if ub not in mask_pos:
+            if ub < genotype.shape[1] and len(retain) < wind_sizes:
+                retain.append(ub)
+        ub += 1
+
+        if lb not in mask_pos:
+            if lb >= 0 and len(retain) < wind_sizes:
+                retain.append(lb)
+        lb -= 1
+    
+    retain= sorted(retain)
     lwind= genotype[:,retain]
     
     return lwind
@@ -91,8 +119,6 @@ def recover_hap(background,like_diet,pca_spec,
 
 
 ###
-
-
 ###
 ###
 from sklearn.metrics import pairwise_distances
