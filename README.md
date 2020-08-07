@@ -40,7 +40,7 @@ Based on the method described in section **I.**. Additions include: composite li
 
 **validation**: benchmark included. 
 
-> [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/master/rice_impute.ipynb)
+> [notebook](https://nbviewer.jupyter.org/github/SantosJGND/Imputation/blob/d55c5e8cd6906c3dd46bc7539408fea53463146c/rice_impute.ipynb)
 
 
 **ii. cluster distance and imputation**
