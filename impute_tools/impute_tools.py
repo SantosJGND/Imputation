@@ -464,3 +464,73 @@ def gridWalk(featl,dist_ref, BG_func, BG_args= {}, std_gp_use= 0,
 
 #######
 #######
+
+
+def haplotype_impute(genotype,tf,
+                     process_tools, keep_tools, varFilt_tools, dist_tools, 
+                     comps_dists= 3,
+                     wind_sizes= 20, Nreps= 50, ncomps= 3, nan_char= [9], ind_min= 50,
+                     dimN= 3, metric= 'euclidean',std_diffs= False, predict= 'haplotype'):
+    '''
+    impute function 
+    '''
+
+    tf_pos= tf[1]
+    tf_acc= tf[0]
+
+    if predict== 'haplotype':
+        avoid_range= int(wind_sizes / 2) - 1
+    else:
+        avoid_range= predict
+
+    ###
+    ###
+    wst= wparse_func(summary,centre= tf_pos,**wparse_args)
+    print('# pos: {}'.format(len(wst)))
+
+    ###
+    ### construct dist ref
+
+    dist_store, labelf_select, correct_dist, select_same, std_gp_use= get_likes_engine(genotype, wst, tf, 
+                         process_tools, keep_tools, varFilt_tools, dist_tools,comps_dists= comps_dists,
+                         wind_sizes= wind_sizes, Nreps= Nreps, ncomps= ncomps, nan_char= nan_char, ind_min= ind_min,
+                         dimN= dimN, metric= metric,std_diffs= std_diffs, avoid_range= avoid_range)
+
+
+    ##
+    ##
+    ##
+    ## local window - get and process
+
+    local_l= wind_extract_func(genotype, idx= tf_pos, wind_sizes= wind_sizes,mask_pos= [])
+
+    ## samp keep - samples without het or nan at this window
+    samp_keep= keep_tools[0](local_l, **keep_tools[1])
+
+    ### process local window - convert to haplotypes - keep only code_keep
+    local_l= process_tools[0](local_l,**process_tools[1])
+
+    ##
+    ## local PCA and PCA transform
+    ##
+    pca_special= dr_obj.fit(local_l[samp_keep])
+    featl= pca_special.transform(local_l)
+
+    ## grid and likelihood.
+
+    background, like_diet= window_exam(featl, samp_keep, select_same, std_gp_use, dist_store, dist_tools, 
+                    labelf_select= labelf_select,correct_dist= correct_dist,
+                   P= P, dimN= ncomps, metric= metric,expand= expand, std_diffs= std_diffs)
+
+    ###
+
+
+    tf_rec= rechap_func(background,like_diet,pca_special,
+                    scale= 1, round_t= True)
+
+    tf_proj= pca_special.transform(tf_rec.reshape(1,-1))[0]
+
+    return background, like_diet, local_l, featl, tf_rec, tf_proj
+
+
+    

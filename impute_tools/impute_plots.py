@@ -121,3 +121,39 @@ def plot_compare(figwl, background, like_diet, tf_proj):
     return trace
 
 
+
+###
+###
+
+
+
+def plot_stats(sts_grid, titles, Ncols= 2):
+
+    fig_subplots = tools.make_subplots(rows= int(len(sts_grid) / float(Ncols)) + (len(sts_grid) % Ncols > 0), cols=Ncols,
+                             subplot_titles=tuple(titles))
+
+    #####
+    for gp in range(len(titles)):
+        facvec= sts_grid[gp]
+
+        pos1= int(float(gp) / Ncols) + 1
+        pos2= gp - (pos1-1)*Ncols + 1
+
+        trace= go.Box(
+            y= facvec
+        )
+        
+        fig_subplots.append_trace(trace, pos1, pos2)
+
+    layout = go.Layout(
+        title= 'benchmark stats',
+    )
+    
+    fig_subplots['layout'].update(height= 900, title= 'benchmark stats, window sizes= {}'.format(wind_sizes))
+    
+    fig= go.Figure(data=fig_subplots, layout=layout)
+    iplot(fig_subplots)
+
+
+###
+###
