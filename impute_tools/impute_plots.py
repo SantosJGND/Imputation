@@ -127,7 +127,7 @@ def plot_compare(figwl, background, like_diet, tf_proj):
 
 
 
-def plot_stats(sts_grid, titles, Ncols= 2):
+def plot_stats(sts_grid, titles, Ncols= 2, wind_sizes= 20):
 
     fig_subplots = tools.make_subplots(rows= int(len(sts_grid) / float(Ncols)) + (len(sts_grid) % Ncols > 0), cols=Ncols,
                              subplot_titles=tuple(titles))

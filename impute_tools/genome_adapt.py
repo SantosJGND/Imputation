@@ -124,7 +124,7 @@ def recover_hap(background,like_diet,pca_spec,
 from sklearn.metrics import pairwise_distances
 
 
-def target_wdDist(genotype, keep_tools, avail_coords= [],
+def target_wdDist(genotype, keep_tools, wind_extract_func, avail_coords= [],
                   nan_obs= [0,0],
                wind_sizes= 100,
                 Nrep= 400,
@@ -174,7 +174,7 @@ def target_wdDist(genotype, keep_tools, avail_coords= [],
         #stp_idx= np.random.randint(0,len(avail_coords),1)[0]
         #stp= avail_coords[stp_idx]
 
-        nwind= lwind_extract(genotype, idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
+        nwind= wind_extract_func(genotype, idx= stp, wind_sizes= wind_sizes,mask_pos= mask_pos)
         
         code_check= keep_tools[0](nwind,**keep_tools[1])
         code_check= np.array(code_check,dtype= int)

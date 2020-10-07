@@ -249,7 +249,7 @@ from impute_tools.genome_adapt import (
 )
 
 def get_likes_engine(genotype, wst, tf, 
-                     process_tools, keep_tools, varFilt_tools, dist_tools,
+                     process_tools, keep_tools, varFilt_tools, dist_tools, wind_extract_func,
                      wind_sizes= 50, Nreps= 100, ncomps= 3, nan_char= [1,9], ind_min= 50,
                      dimN= 3, metric= 'euclidean', comps_dists= 5,
                      std_diffs= True,avoid_range= 0):
@@ -260,7 +260,8 @@ def get_likes_engine(genotype, wst, tf,
     dr_obj = PCA(n_components=ncomps, whiten=False,svd_solver='randomized')
     
     ### get array of similar windows
-    select_same, Seq_store= target_wdDist(genotype, keep_tools, avail_coords= wst,
+    select_same, Seq_store= target_wdDist(genotype, keep_tools, wind_extract_func, 
+                    avail_coords= wst,
                       nan_obs= tf,
                        wind_sizes= wind_sizes,
                         Nrep= Nreps,
@@ -466,9 +467,9 @@ def gridWalk(featl,dist_ref, BG_func, BG_args= {}, std_gp_use= 0,
 #######
 
 
-def haplotype_impute(genotype,tf,
-                     process_tools, keep_tools, varFilt_tools, dist_tools, 
-                     comps_dists= 3,
+def haplotype_impute(genotype,summary, tf, dr_obj,
+                     process_tools, keep_tools, varFilt_tools, dist_tools, wparse_tools, wind_extract_func,
+                     rechap_func, comps_dists= 3, P= 20, expand= 1, 
                      wind_sizes= 20, Nreps= 50, ncomps= 3, nan_char= [9], ind_min= 50,
                      dimN= 3, metric= 'euclidean',std_diffs= False, predict= 'haplotype'):
     '''
@@ -485,16 +486,17 @@ def haplotype_impute(genotype,tf,
 
     ###
     ###
-    wst= wparse_func(summary,centre= tf_pos,**wparse_args)
+    wst= wparse_tools[0](summary,centre= tf_pos,**wparse_tools[1])
     print('# pos: {}'.format(len(wst)))
 
     ###
     ### construct dist ref
 
     dist_store, labelf_select, correct_dist, select_same, std_gp_use= get_likes_engine(genotype, wst, tf, 
-                         process_tools, keep_tools, varFilt_tools, dist_tools,comps_dists= comps_dists,
-                         wind_sizes= wind_sizes, Nreps= Nreps, ncomps= ncomps, nan_char= nan_char, ind_min= ind_min,
-                         dimN= dimN, metric= metric,std_diffs= std_diffs, avoid_range= avoid_range)
+                         process_tools, keep_tools, varFilt_tools, dist_tools, wind_extract_func,
+                         comps_dists= comps_dists, wind_sizes= wind_sizes, Nreps= Nreps, ncomps= ncomps, 
+                         nan_char= nan_char, ind_min= ind_min, dimN= dimN, metric= metric,
+                         std_diffs= std_diffs, avoid_range= avoid_range)
 
 
     ##
